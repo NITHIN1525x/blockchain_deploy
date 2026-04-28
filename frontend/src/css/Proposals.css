@@ -1,0 +1,214 @@
+/* src/css/Proposals.css */
+
+/* ── Proposal Cards ──────────────────────────── */
+.proposals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.proposal-card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.proposal-card:hover {
+    border-color: #e8e8e8;
+    transform: translateY(-2px);
+}
+
+.proposal-card.accepted {
+    border-color: #00c853;
+    background: #f9fff9;
+}
+
+.proposal-card.rejected {
+    border-color: #e0e0e0;
+    opacity: 0.7;
+}
+
+.proposal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.proposer-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.proposer-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.proposer-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2d2d2d;
+}
+
+.proposer-skills {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 2px;
+}
+
+.proposal-meta {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.meta-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.meta-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2d2d2d;
+}
+
+.meta-value.green { color: #2e7d32; }
+.meta-value.blue  { color: #1565c0; }
+
+.proposal-message {
+    background: #f8f8f8;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.proposal-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* ── Job Info Banner ─────────────────────────── */
+.job-info-banner {
+    background: linear-gradient(135deg, #6c63ff, #5a52d5);
+    border-radius: 16px;
+    padding: 24px 28px;
+    color: white;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.job-info-banner h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.job-info-banner p {
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
+
+.job-info-stats {
+    display: flex;
+    gap: 24px;
+}
+
+.job-info-stat {
+    text-align: center;
+}
+
+.job-info-stat strong {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.job-info-stat span {
+    font-size: 0.78rem;
+    opacity: 0.8;
+}
+
+/* ── Apply Form ──────────────────────────────── */
+.apply-form-card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    margin-bottom: 28px;
+    border: 2px solid #ede7f6;
+}
+
+.apply-form-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d2d2d;
+    margin-bottom: 20px;
+}
+
+.apply-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.btn-apply {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-apply:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.btn-apply:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 600px) {
+    .apply-form-row { grid-template-columns: 1fr; }
+    .proposal-header { flex-direction: column; gap: 12px; }
+    .job-info-banner { flex-direction: column; }
+}

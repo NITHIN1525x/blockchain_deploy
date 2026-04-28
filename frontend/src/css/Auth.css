@@ -1,0 +1,304 @@
+/* src/css/Auth.css */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f4f6fc 0%, #ede9ff 100%);
+    padding: 40px 20px;
+}
+
+/* ── Role Selector (Login) ───────────────────── */
+.role-selector-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f4f6fc 0%, #ede9ff 100%);
+    padding: 40px 20px;
+}
+
+.role-selector-box {
+    background: white;
+    border-radius: 24px;
+    padding: 56px 48px;
+    box-shadow: 0 8px 40px rgba(108, 99, 255, 0.12);
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+}
+
+.role-selector-box h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2d2d2d;
+    margin-bottom: 10px;
+}
+
+.role-selector-box p {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 40px;
+}
+
+.role-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.role-select-card {
+    border: 2.5px solid #e0e0e0;
+    border-radius: 16px;
+    padding: 32px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: block;
+    background: white;
+}
+
+.role-select-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(108, 99, 255, 0.15);
+}
+
+.role-select-card.client-card:hover {
+    border-color: #6c63ff;
+}
+
+.role-select-card.freelancer-card:hover {
+    border-color: #f5576c;
+}
+
+.role-select-card .card-icon {
+    font-size: 2.8rem;
+    margin-bottom: 14px;
+    display: block;
+}
+
+.role-select-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d2d2d;
+    margin-bottom: 8px;
+}
+
+.role-select-card p {
+    font-size: 0.82rem;
+    color: #888;
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+.client-card h3 { color: #6c63ff; }
+.freelancer-card h3 { color: #f5576c; }
+
+.auth-redirect {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.auth-redirect a {
+    color: #6c63ff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-redirect a:hover {
+    text-decoration: underline;
+}
+
+/* ── Login Form ──────────────────────────────── */
+.auth-box {
+    background: white;
+    border-radius: 24px;
+    padding: 48px 44px;
+    box-shadow: 0 8px 40px rgba(108, 99, 255, 0.12);
+    width: 100%;
+    max-width: 480px;
+}
+
+/* Role badge at top of form */
+.auth-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.auth-role-badge.client {
+    background: #ede7f6;
+    color: #6c63ff;
+}
+
+.auth-role-badge.freelancer {
+    background: #fce4ec;
+    color: #f5576c;
+}
+
+.auth-box h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #2d2d2d;
+    margin-bottom: 8px;
+}
+
+.auth-box .auth-subtitle {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 32px;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid #e8e8e8;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: #2d2d2d;
+    background: #fafafa;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+    background: white;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Error text */
+.form-error {
+    background: #ffebee;
+    color: #c62828;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    margin-bottom: 20px;
+    border-left: 4px solid #c62828;
+}
+
+/* Submit Button */
+.btn-auth {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+.btn-auth.client {
+    background: linear-gradient(135deg, #6c63ff, #5a52d5);
+}
+
+.btn-auth.freelancer {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 99, 255, 0.35);
+}
+
+.btn-auth:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Divider */
+.auth-divider {
+    text-align: center;
+    margin: 24px 0;
+    position: relative;
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 42%;
+    height: 1px;
+    background: #e8e8e8;
+}
+
+.auth-divider::before { left: 0; }
+.auth-divider::after { right: 0; }
+
+/* Back link */
+.auth-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #6c63ff;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 20px;
+    transition: gap 0.2s ease;
+}
+
+.auth-back:hover {
+    gap: 10px;
+}
+
+/* Register specific */
+.register-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 480px) {
+    .auth-box {
+        padding: 32px 24px;
+    }
+    .role-selector-box {
+        padding: 40px 24px;
+    }
+    .role-cards {
+        grid-template-columns: 1fr;
+    }
+    .register-grid {
+        grid-template-columns: 1fr;
+    }
+}

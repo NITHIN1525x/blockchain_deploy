@@ -1,0 +1,17 @@
+# Backend .gitignore
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+db.sqlite3
+media/
+staticfiles/
+.env
+.DS_Store
+*.egg-info/
+dist/
+build/

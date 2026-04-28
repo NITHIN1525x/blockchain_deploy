@@ -1,0 +1,31 @@
+# Python
+backend/venv/
+backend/__pycache__/
+*.pyc
+
+# Django
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+
+# Env files
+.env
+backend/.env
+frontend/.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Blockchain
+blockchain/node_modules/
+blockchain/artifacts/
+blockchain/cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
