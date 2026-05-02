@@ -5,6 +5,7 @@ from .views import (
     ConnectWalletView,
     SyncOnchainLockPaymentView,
     SyncOnchainApproveView,
+    SyncOnchainSubmitAndReleaseView,
 )
 
 urlpatterns = [
@@ -19,5 +20,10 @@ urlpatterns = [
         "projects/<int:pk>/approve/onchain-sync/",
         SyncOnchainApproveView.as_view(),
         name="approve-onchain-sync",
+    ),
+    path(
+        "projects/<int:pk>/submit-work/onchain-sync/",
+        SyncOnchainSubmitAndReleaseView.as_view(),
+        name="submit-work-onchain-sync",
     ),
 ]

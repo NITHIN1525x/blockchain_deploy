@@ -3,8 +3,6 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import API from '../../api/axios.js'
-import { useWeb3 } from '../../context/Web3Context.jsx'
-import { approveAndReleaseOnChain } from '../../utils/escrowContract.js'
 import ClientSidebar from '../../components/ClientSidebar.jsx'
 import '../../css/Dashboard.css'
 import '../../css/Jobs.css'
@@ -13,7 +11,6 @@ import '../../css/Proposals.css'
 export default function ReviewSubmission() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const { account, connectWallet, isMetaMaskInstalled } = useWeb3()
     const [project, setProject] = useState(null)
     const [loading, setLoading] = useState(true)
     const [revisionNotes, setRevisionNotes] = useState('')
@@ -37,38 +34,16 @@ export default function ReviewSubmission() {
 
     const handleApprove = async () => {
         if (!window.confirm(
-            `Approve work and release $${project.escrow_amount} to ${project.freelancer_details?.username}?`
+            `Approve work and release $${project.escrow_amount} to ${project.freelancer_details?.username} in local demo mode?`
         )) return
 
         setActionLoading(true)
         try {
-            let res
-
-            // If this project is linked on-chain, run MetaMask tx then sync backend
-            if (project?.onchain_project_id) {
-                if (!isMetaMaskInstalled) {
-                    throw new Error('MetaMask is required for this on-chain project approval.')
-                }
-
-                let selectedWallet = account
-                if (!selectedWallet) {
-                    selectedWallet = await connectWallet()
-                }
-
-                const txHash = await approveAndReleaseOnChain(project.onchain_project_id)
-                res = await API.post(`/projects/${id}/approve/onchain-sync/`, {
-                    tx_hash: txHash,
-                    wallet_address: selectedWallet || '',
-                })
-            } else {
-                // Fallback: simulated DB-only approval
-                res = await API.post(`/projects/${id}/approve/`)
-            }
-
-            toast.success(res.data.message)
+            const res = await API.post(`/projects/${id}/approve/`)
+            toast.success(res.data.message || 'Work approved successfully.')
             navigate('/client/projects')
         } catch (err) {
-            toast.error(err.response?.data?.error || err?.message || 'Failed to approve work.')
+            toast.error(err.response?.data?.error || 'Failed to approve work.')
         } finally {
             setActionLoading(false)
         }
@@ -79,10 +54,11 @@ export default function ReviewSubmission() {
             toast.error('Please enter revision notes.')
             return
         }
+
         setActionLoading(true)
         try {
             await API.post(`/projects/${id}/request-revision/`, {
-                notes: revisionNotes
+                notes: revisionNotes,
             })
             toast.success('Revision requested! Freelancer will be notified.')
             setShowRevisionForm(false)
@@ -111,7 +87,6 @@ export default function ReviewSubmission() {
             <ClientSidebar />
 
             <main className="dashboard-main">
-
                 <Link
                     to="/client/projects"
                     style={{
@@ -122,94 +97,79 @@ export default function ReviewSubmission() {
                         fontWeight: 600,
                         fontSize: '0.9rem',
                         marginBottom: '24px',
-                        textDecoration: 'none'
+                        textDecoration: 'none',
                     }}
                 >
-                    ← Back to Projects
+                    {'<-'} Back to Projects
                 </Link>
 
                 <div className="dashboard-header">
                     <h1>Review Submission</h1>
-                    <p>Check the freelancer's work and decide to approve or request changes.</p>
+                    <p>Check the freelancer&apos;s work and decide to approve or request changes.</p>
                 </div>
 
-                {/* Project Info */}
                 <div className="dashboard-card">
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         flexWrap: 'wrap',
-                        gap: '12px'
+                        gap: '12px',
                     }}>
                         <div>
                             <h2 style={{
                                 fontSize: '1.3rem',
                                 fontWeight: 700,
-                                marginBottom: '6px'
+                                marginBottom: '6px',
                             }}>
                                 {project?.job_details?.title}
                             </h2>
                             <p style={{ color: '#888', fontSize: '0.88rem' }}>
                                 Freelancer: <strong>{project?.freelancer_details?.username}</strong>
-                                &nbsp;•&nbsp;
+                                {' • '}
                                 Escrow: <strong style={{ color: '#6c63ff' }}>
                                     ${project?.escrow_amount}
                                 </strong>
                             </p>
                         </div>
-                        <span className="badge badge-warning">
-                            📨 Work Submitted
-                        </span>
+                        <span className="badge badge-warning">Work Submitted</span>
                     </div>
                 </div>
 
-                {/* Submission Details */}
                 {submission ? (
                     <div className="dashboard-card">
                         <h2 style={{
                             fontSize: '1.1rem',
                             fontWeight: 700,
-                            marginBottom: '24px'
+                            marginBottom: '24px',
                         }}>
-                            📁 Submitted Work
+                            Submitted Work
                         </h2>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
                             {submission.github_link && (
                                 <div style={{
                                     background: '#f8f8f8',
                                     borderRadius: '12px',
                                     padding: '20px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '14px'
                                 }}>
-                                    <span style={{ fontSize: '1.8rem' }}>🐙</span>
-                                    <div>
-                                        <div style={{
-                                            fontSize: '0.78rem',
-                                            color: '#888',
-                                            fontWeight: 700,
-                                            textTransform: 'uppercase',
-                                            marginBottom: '4px'
-                                        }}>
-                                            GitHub Repository
-                                        </div>
-                                        <a
-                                            href={submission.github_link}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            style={{
-                                                color: '#6c63ff',
-                                                fontWeight: 600,
-                                                wordBreak: 'break-all'
-                                            }}
-                                        >
-                                            {submission.github_link}
-                                        </a>
+                                    <div style={{
+                                        fontSize: '0.78rem',
+                                        color: '#888',
+                                        fontWeight: 700,
+                                        textTransform: 'uppercase',
+                                        marginBottom: '4px',
+                                    }}>
+                                        GitHub Repository
                                     </div>
+                                    <a
+                                        href={submission.github_link}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        style={{ color: '#6c63ff', fontWeight: 600, wordBreak: 'break-all' }}
+                                    >
+                                        {submission.github_link}
+                                    </a>
                                 </div>
                             )}
 
@@ -218,34 +178,24 @@ export default function ReviewSubmission() {
                                     background: '#f8f8f8',
                                     borderRadius: '12px',
                                     padding: '20px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '14px'
                                 }}>
-                                    <span style={{ fontSize: '1.8rem' }}>🌐</span>
-                                    <div>
-                                        <div style={{
-                                            fontSize: '0.78rem',
-                                            color: '#888',
-                                            fontWeight: 700,
-                                            textTransform: 'uppercase',
-                                            marginBottom: '4px'
-                                        }}>
-                                            Live Website
-                                        </div>
-                                        <a
-                                            href={submission.website_url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            style={{
-                                                color: '#6c63ff',
-                                                fontWeight: 600,
-                                                wordBreak: 'break-all'
-                                            }}
-                                        >
-                                            {submission.website_url}
-                                        </a>
+                                    <div style={{
+                                        fontSize: '0.78rem',
+                                        color: '#888',
+                                        fontWeight: 700,
+                                        textTransform: 'uppercase',
+                                        marginBottom: '4px',
+                                    }}>
+                                        Live Website
                                     </div>
+                                    <a
+                                        href={submission.website_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        style={{ color: '#6c63ff', fontWeight: 600, wordBreak: 'break-all' }}
+                                    >
+                                        {submission.website_url}
+                                    </a>
                                 </div>
                             )}
 
@@ -254,30 +204,24 @@ export default function ReviewSubmission() {
                                     background: '#f8f8f8',
                                     borderRadius: '12px',
                                     padding: '20px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '14px'
                                 }}>
-                                    <span style={{ fontSize: '1.8rem' }}>📄</span>
-                                    <div>
-                                        <div style={{
-                                            fontSize: '0.78rem',
-                                            color: '#888',
-                                            fontWeight: 700,
-                                            textTransform: 'uppercase',
-                                            marginBottom: '4px'
-                                        }}>
-                                            File / Document
-                                        </div>
-                                        <a
-                                            href={submission.file_link}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            style={{ color: '#6c63ff', fontWeight: 600 }}
-                                        >
-                                            View File
-                                        </a>
+                                    <div style={{
+                                        fontSize: '0.78rem',
+                                        color: '#888',
+                                        fontWeight: 700,
+                                        textTransform: 'uppercase',
+                                        marginBottom: '4px',
+                                    }}>
+                                        File / Document
                                     </div>
+                                    <a
+                                        href={submission.file_link}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        style={{ color: '#6c63ff', fontWeight: 600 }}
+                                    >
+                                        View File
+                                    </a>
                                 </div>
                             )}
 
@@ -285,22 +229,18 @@ export default function ReviewSubmission() {
                                 <div style={{
                                     background: '#f8f8f8',
                                     borderRadius: '12px',
-                                    padding: '20px'
+                                    padding: '20px',
                                 }}>
                                     <div style={{
                                         fontSize: '0.78rem',
                                         color: '#888',
                                         fontWeight: 700,
                                         textTransform: 'uppercase',
-                                        marginBottom: '8px'
+                                        marginBottom: '8px',
                                     }}>
-                                        📝 Freelancer Notes
+                                        Freelancer Notes
                                     </div>
-                                    <p style={{
-                                        color: '#444',
-                                        lineHeight: 1.7,
-                                        fontSize: '0.95rem'
-                                    }}>
+                                    <p style={{ color: '#444', lineHeight: 1.7, fontSize: '0.95rem' }}>
                                         {submission.notes}
                                     </p>
                                 </div>
@@ -309,7 +249,7 @@ export default function ReviewSubmission() {
                             <div style={{
                                 fontSize: '0.8rem',
                                 color: '#aaa',
-                                textAlign: 'right'
+                                textAlign: 'right',
                             }}>
                                 Submitted: {new Date(submission.submitted_at).toLocaleString()}
                             </div>
@@ -318,20 +258,19 @@ export default function ReviewSubmission() {
                 ) : (
                     <div className="dashboard-card">
                         <div className="empty-state">
-                            <span className="empty-state-icon">📭</span>
+                            <span className="empty-state-icon">💬</span>
                             <h3>No submission yet</h3>
-                            <p>The freelancer hasn't submitted work yet.</p>
+                            <p>The freelancer hasn&apos;t submitted work yet.</p>
                         </div>
                     </div>
                 )}
 
-                {/* Decision Buttons */}
                 {project?.work_status === 'submitted' && (
                     <div className="dashboard-card">
                         <h2 style={{
                             fontSize: '1.1rem',
                             fontWeight: 700,
-                            marginBottom: '20px'
+                            marginBottom: '20px',
                         }}>
                             Your Decision
                         </h2>
@@ -346,8 +285,7 @@ export default function ReviewSubmission() {
                                 >
                                     {actionLoading
                                         ? 'Processing...'
-                                        : `✅ Approve & Release $${project.escrow_amount}`
-                                    }
+                                        : `Approve & Release $${project.escrow_amount}`}
                                 </button>
 
                                 <button
@@ -356,7 +294,7 @@ export default function ReviewSubmission() {
                                     onClick={() => setShowRevisionForm(true)}
                                     disabled={actionLoading}
                                 >
-                                    🔄 Request Revision
+                                    Request Revision
                                 </button>
 
                                 <Link
@@ -364,7 +302,7 @@ export default function ReviewSubmission() {
                                     className="btn-outline"
                                     style={{ padding: '14px 28px', fontSize: '1rem' }}
                                 >
-                                    💬 Chat with Freelancer
+                                    Chat with Freelancer
                                 </Link>
                             </div>
                         ) : (
@@ -375,7 +313,7 @@ export default function ReviewSubmission() {
                                         fontWeight: 600,
                                         marginBottom: '8px',
                                         color: '#444',
-                                        fontSize: '0.88rem'
+                                        fontSize: '0.88rem',
                                     }}>
                                         Revision Notes *
                                     </label>
@@ -389,7 +327,7 @@ export default function ReviewSubmission() {
                                             minHeight: '120px',
                                             resize: 'vertical',
                                             outline: 'none',
-                                            fontFamily: 'inherit'
+                                            fontFamily: 'inherit',
                                         }}
                                         placeholder="Describe what needs to be changed or improved..."
                                         value={revisionNotes}
@@ -403,7 +341,7 @@ export default function ReviewSubmission() {
                                         onClick={handleRequestRevision}
                                         disabled={actionLoading}
                                     >
-                                        {actionLoading ? 'Sending...' : '📨 Send Revision Request'}
+                                        {actionLoading ? 'Sending...' : 'Send Revision Request'}
                                     </button>
                                     <button
                                         className="btn-outline"
@@ -418,25 +356,21 @@ export default function ReviewSubmission() {
                     </div>
                 )}
 
-                {/* Already Approved */}
                 {project?.work_status === 'approved' && (
                     <div className="dashboard-card" style={{
                         background: '#f0fff4',
                         border: '2px solid #00c853',
                         textAlign: 'center',
-                        padding: '40px'
+                        padding: '40px',
                     }}>
-                        <span style={{ fontSize: '3rem' }}>🎉</span>
                         <h2 style={{ color: '#2e7d32', margin: '16px 0 8px' }}>
                             Work Approved!
                         </h2>
                         <p style={{ color: '#555' }}>
-                            Payment of ${project.escrow_amount} has been
-                            released to {project.freelancer_details?.username}.
+                            Payment of ${project.escrow_amount} has been released to {project.freelancer_details?.username}.
                         </p>
                     </div>
                 )}
-
             </main>
         </div>
     )

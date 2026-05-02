@@ -13,9 +13,13 @@ export default function WalletPage() {
         account,
         chainId,
         connecting,
+        expectedChainId,
+        expectedRpcUrl,
+        isExpectedChain,
         isMetaMaskInstalled,
         connectWallet,
         disconnectWallet,
+        switchToExpectedChain,
     } = useWeb3()
     const [projects, setProjects] = useState([])
     const [loading, setLoading] = useState(true)
@@ -60,6 +64,18 @@ export default function WalletPage() {
             toast.success(res.data?.message || 'Wallet connected successfully!')
         } catch (err) {
             toast.error(err?.message || 'Failed to connect wallet.')
+        } finally {
+            setSyncingWallet(false)
+        }
+    }
+
+    const handleSwitchNetwork = async () => {
+        try {
+            setSyncingWallet(true)
+            await switchToExpectedChain()
+            toast.success('MetaMask switched to the local Ethereum network.')
+        } catch (err) {
+            toast.error(err?.message || 'Failed to switch MetaMask to the local network.')
         } finally {
             setSyncingWallet(false)
         }
@@ -130,8 +146,28 @@ export default function WalletPage() {
                             <p style={{ marginBottom: '16px', color: '#666' }}>
                                 Chain ID: <strong>{chainId || 'Unknown'}</strong>
                             </p>
+                            <p style={{ marginBottom: '10px', color: '#666' }}>
+                                Required Local Chain: <strong>{expectedChainId || 'Loading...'}</strong>
+                            </p>
+                            <p style={{ marginBottom: '16px', color: '#666' }}>
+                                Local RPC: <strong>{expectedRpcUrl || 'Loading...'}</strong>
+                            </p>
+                            {chainId && expectedChainId && !isExpectedChain && (
+                                <p style={{ marginBottom: '16px', color: '#b00020', fontWeight: 600 }}>
+                                    MetaMask is on the wrong network. Switch to the local Ethereum chain before sending payments.
+                                </p>
+                            )}
 
                             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                {expectedChainId && !isExpectedChain && (
+                                    <button
+                                        className="btn-outline"
+                                        onClick={handleSwitchNetwork}
+                                        disabled={syncingWallet}
+                                    >
+                                        {syncingWallet ? 'Switching...' : 'Switch to Local Network'}
+                                    </button>
+                                )}
                                 {!account ? (
                                     <button
                                         className="btn-primary"

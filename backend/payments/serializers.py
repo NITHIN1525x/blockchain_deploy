@@ -20,3 +20,22 @@ class OnchainLockSyncSerializer(serializers.Serializer):
 class OnchainApproveSyncSerializer(serializers.Serializer):
     tx_hash = serializers.CharField(max_length=120)
     wallet_address = serializers.CharField(max_length=120, required=False, allow_blank=True)
+
+
+class OnchainSubmitAndReleaseSyncSerializer(serializers.Serializer):
+    tx_hash = serializers.CharField(max_length=120)
+    wallet_address = serializers.CharField(max_length=120, required=False, allow_blank=True)
+    github_link = serializers.URLField(required=False, allow_blank=True)
+    website_url = serializers.URLField(required=False, allow_blank=True)
+    file_link = serializers.URLField(required=False, allow_blank=True)
+    notes = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        if not any(
+            (attrs.get(field) or "").strip()
+            for field in ["github_link", "website_url", "file_link", "notes"]
+        ):
+            raise serializers.ValidationError(
+                "Please fill in at least one submission field."
+            )
+        return attrs

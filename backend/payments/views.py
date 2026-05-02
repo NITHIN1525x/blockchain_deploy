@@ -1,16 +1,31 @@
 from django.db import transaction
+from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from projects.models import Project
+from projects.models import Submission
 from projects.serializers import ProjectSerializer
 from .serializers import (
 	WalletConnectSerializer,
 	OnchainLockSyncSerializer,
 	OnchainApproveSyncSerializer,
+	OnchainSubmitAndReleaseSyncSerializer,
 )
 from .blockchain import contract_info
+
+User = get_user_model()
+
+
+def wallet_belongs_to_another_user(wallet_address: str, current_user) -> bool:
+	wallet = (wallet_address or "").strip()
+	if not wallet:
+		return False
+
+	return User.objects.filter(
+		wallet_address__iexact=wallet,
+	).exclude(pk=current_user.pk).exists()
 
 
 class ContractInfoView(APIView):
@@ -36,7 +51,14 @@ class ConnectWalletView(APIView):
 		serializer = WalletConnectSerializer(data=request.data)
 		serializer.is_valid(raise_exception=True)
 
-		request.user.wallet_address = serializer.validated_data["wallet_address"]
+		wallet_address = serializer.validated_data["wallet_address"]
+		if wallet_belongs_to_another_user(wallet_address, request.user):
+			return Response(
+				{"wallet_address": ["This wallet is already connected to another user."]},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+
+		request.user.wallet_address = wallet_address
 		request.user.save(update_fields=["wallet_address"])
 
 		return Response(
@@ -79,6 +101,12 @@ class SyncOnchainLockPaymentView(APIView):
 		data = serializer.validated_data
 		wallet = (data.get("wallet_address") or "").strip()
 		info = contract_info()
+
+		if wallet_belongs_to_another_user(wallet, request.user):
+			return Response(
+				{"error": "This wallet is already connected to another user."},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
 
 		with transaction.atomic():
 			project.payment_status = "locked"
@@ -139,6 +167,12 @@ class SyncOnchainApproveView(APIView):
 
 		wallet = (serializer.validated_data.get("wallet_address") or "").strip()
 
+		if wallet_belongs_to_another_user(wallet, request.user):
+			return Response(
+				{"error": "This wallet is already connected to another user."},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+
 		with transaction.atomic():
 			project.payment_status = "released"
 			project.work_status = "approved"
@@ -159,6 +193,85 @@ class SyncOnchainApproveView(APIView):
 		return Response(
 			{
 				"message": "On-chain approval synced and freelancer balance updated.",
+				"project": ProjectSerializer(project).data,
+			},
+			status=status.HTTP_200_OK,
+		)
+
+
+class SyncOnchainSubmitAndReleaseView(APIView):
+	"""
+	POST /api/projects/{id}/submit-work/onchain-sync/
+	Sync freelancer submit-work tx that also auto-releases payment on-chain.
+	"""
+	permission_classes = [permissions.IsAuthenticated]
+
+	def post(self, request, pk):
+		if request.user.role != "freelancer":
+			return Response(
+				{"error": "Only freelancers can sync submit work."},
+				status=status.HTTP_403_FORBIDDEN,
+			)
+
+		try:
+			project = Project.objects.select_related("freelancer", "job").get(
+				pk=pk,
+				freelancer=request.user,
+			)
+		except Project.DoesNotExist:
+			return Response({"error": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
+
+		serializer = OnchainSubmitAndReleaseSyncSerializer(data=request.data)
+		serializer.is_valid(raise_exception=True)
+
+		if project.payment_status != "locked":
+			return Response(
+				{"error": "Client has not locked payment yet."},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+
+		if project.work_status not in ["in_progress", "revision_requested"]:
+			return Response(
+				{"error": "Work cannot be submitted at this stage."},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+
+		wallet = (serializer.validated_data.get("wallet_address") or "").strip()
+		if wallet_belongs_to_another_user(wallet, request.user):
+			return Response(
+				{"error": "This wallet is already connected to another user."},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+
+		with transaction.atomic():
+			Submission.objects.create(
+				project=project,
+				github_link=serializer.validated_data.get("github_link") or "",
+				website_url=serializer.validated_data.get("website_url") or "",
+				file_link=serializer.validated_data.get("file_link") or "",
+				notes=serializer.validated_data.get("notes") or "",
+			)
+
+			project.payment_status = "released"
+			project.work_status = "approved"
+			project.revision_notes = ""
+			project.last_tx_hash = serializer.validated_data["tx_hash"]
+			project.save()
+
+			freelancer = project.freelancer
+			freelancer.balance += project.escrow_amount
+			if wallet:
+				freelancer.wallet_address = wallet
+				freelancer.save(update_fields=["balance", "wallet_address"])
+			else:
+				freelancer.save(update_fields=["balance"])
+
+			project.job.status = "completed"
+			project.job.save(update_fields=["status"])
+
+		return Response(
+			{
+				"message": "Work submitted and payment released on-chain.",
 				"project": ProjectSerializer(project).data,
 			},
 			status=status.HTTP_200_OK,

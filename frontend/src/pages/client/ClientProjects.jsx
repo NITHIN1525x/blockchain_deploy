@@ -32,15 +32,15 @@ export default function ClientProjects() {
     }
 
     const handleLockPayment = async (project) => {
-        if (!window.confirm('Lock payment into escrow on-chain using MetaMask?')) return
+        if (!window.confirm('Lock payment into local MetaMask escrow?')) return
 
         if (!isMetaMaskInstalled) {
-            toast.error('MetaMask is required for on-chain lock payment.')
+            toast.error('MetaMask is required for local on-chain lock payment.')
             return
         }
 
         if (!project?.freelancer_details?.wallet_address) {
-            toast.error('Freelancer has no wallet address in profile. Ask them to connect wallet first.')
+            toast.error('Freelancer has no wallet address in profile. Ask them to connect MetaMask first.')
             return
         }
 
@@ -59,6 +59,14 @@ export default function ClientProjects() {
             return
         }
 
+        if (
+            selectedWallet.toLowerCase() ===
+            project.freelancer_details.wallet_address.toLowerCase()
+        ) {
+            toast.error('Client and freelancer must use different MetaMask accounts.')
+            return
+        }
+
         setLockingId(project.id)
         try {
             const { onchainProjectId, txHash } = await createProjectAndLockPaymentOnChain({
@@ -72,7 +80,7 @@ export default function ClientProjects() {
                 wallet_address: selectedWallet,
             })
 
-            toast.success(res.data.message || 'Payment locked successfully on-chain!')
+            toast.success(res.data.message || 'Payment locked successfully on local MetaMask.')
             fetchProjects()
         } catch (err) {
             toast.error(err.response?.data?.error || err?.message || 'Failed to lock payment on-chain.')
@@ -82,7 +90,7 @@ export default function ClientProjects() {
     }
 
     const handleSimulateLockPayment = async (projectId) => {
-        if (!window.confirm('Lock payment into escrow in database only (simulation mode)?')) return
+        if (!window.confirm('Lock payment in local demo mode instead?')) return
         setLockingId(projectId)
         try {
             const res = await API.post(`/projects/${projectId}/lock-payment/`)
@@ -123,7 +131,7 @@ export default function ClientProjects() {
             <main className="dashboard-main">
                 <div className="dashboard-header">
                     <h1>Active Projects</h1>
-                    <p>Track all your ongoing and completed projects.</p>
+                    <p>Use local MetaMask escrow, with a demo-only fallback if needed.</p>
                 </div>
 
                 {loading ? (
@@ -143,30 +151,26 @@ export default function ClientProjects() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         {projects.map(project => (
                             <div key={project.id} className="dashboard-card">
-
-                                {/* Project Header */}
                                 <div style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'flex-start',
                                     marginBottom: '20px',
                                     flexWrap: 'wrap',
-                                    gap: '12px'
+                                    gap: '12px',
                                 }}>
                                     <div>
                                         <h2 style={{
                                             fontSize: '1.2rem',
                                             fontWeight: 700,
                                             color: '#2d2d2d',
-                                            marginBottom: '6px'
+                                            marginBottom: '6px',
                                         }}>
                                             {project.job_details?.title}
                                         </h2>
                                         <p style={{ color: '#888', fontSize: '0.85rem' }}>
-                                            Freelancer: <strong>
-                                                {project.freelancer_details?.username}
-                                            </strong>
-                                            &nbsp;•&nbsp;
+                                            Freelancer: <strong>{project.freelancer_details?.username}</strong>
+                                            {' • '}
                                             Started: {new Date(project.created_at).toLocaleDateString()}
                                         </p>
                                     </div>
@@ -180,7 +184,6 @@ export default function ClientProjects() {
                                     </div>
                                 </div>
 
-                                {/* Escrow Amount */}
                                 <div style={{
                                     background: '#f8f7ff',
                                     borderRadius: '12px',
@@ -188,7 +191,7 @@ export default function ClientProjects() {
                                     marginBottom: '20px',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '12px'
+                                    gap: '12px',
                                 }}>
                                     <span style={{ fontSize: '1.5rem' }}>🔒</span>
                                     <div>
@@ -196,42 +199,41 @@ export default function ClientProjects() {
                                             fontSize: '0.78rem',
                                             color: '#888',
                                             fontWeight: 600,
-                                            textTransform: 'uppercase'
+                                            textTransform: 'uppercase',
                                         }}>
                                             Escrow Amount
                                         </div>
                                         <div style={{
                                             fontSize: '1.4rem',
                                             fontWeight: 800,
-                                            color: '#6c63ff'
+                                            color: '#6c63ff',
                                         }}>
                                             ${project.escrow_amount}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Latest Submission */}
                                 {project.latest_submission && (
                                     <div style={{
                                         background: '#f0fff4',
                                         border: '1px solid #b2dfdb',
                                         borderRadius: '12px',
                                         padding: '16px 20px',
-                                        marginBottom: '20px'
+                                        marginBottom: '20px',
                                     }}>
                                         <div style={{
                                             fontWeight: 700,
                                             color: '#2e7d32',
                                             marginBottom: '10px',
-                                            fontSize: '0.9rem'
+                                            fontSize: '0.9rem',
                                         }}>
-                                            📁 Latest Submission
+                                            Latest Submission
                                         </div>
                                         <div style={{
                                             display: 'flex',
                                             gap: '16px',
                                             flexWrap: 'wrap',
-                                            fontSize: '0.85rem'
+                                            fontSize: '0.85rem',
                                         }}>
                                             {project.latest_submission.github_link && (
                                                 <a
@@ -240,7 +242,7 @@ export default function ClientProjects() {
                                                     rel="noreferrer"
                                                     style={{ color: '#6c63ff', fontWeight: 600 }}
                                                 >
-                                                    🐙 GitHub
+                                                    GitHub
                                                 </a>
                                             )}
                                             {project.latest_submission.website_url && (
@@ -250,19 +252,18 @@ export default function ClientProjects() {
                                                     rel="noreferrer"
                                                     style={{ color: '#6c63ff', fontWeight: 600 }}
                                                 >
-                                                    🌐 Live URL
+                                                    Live URL
                                                 </a>
                                             )}
                                             {project.latest_submission.notes && (
                                                 <span style={{ color: '#555' }}>
-                                                    📝 {project.latest_submission.notes}
+                                                    Notes: {project.latest_submission.notes}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Revision Notes */}
                                 {project.revision_notes && (
                                     <div style={{
                                         background: '#fff3e0',
@@ -271,15 +272,13 @@ export default function ClientProjects() {
                                         padding: '16px 20px',
                                         marginBottom: '20px',
                                         fontSize: '0.88rem',
-                                        color: '#e65100'
+                                        color: '#e65100',
                                     }}>
-                                        🔄 <strong>Revision Requested:</strong> {project.revision_notes}
+                                        <strong>Revision Requested:</strong> {project.revision_notes}
                                     </div>
                                 )}
 
-                                {/* Actions */}
                                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-
                                     {project.payment_status === 'pending' && (
                                         <>
                                             <button
@@ -289,8 +288,7 @@ export default function ClientProjects() {
                                             >
                                                 {lockingId === project.id
                                                     ? 'Locking...'
-                                                    : '🦊 Lock Payment (MetaMask)'
-                                                }
+                                                    : 'Lock Payment (Local MetaMask)'}
                                             </button>
 
                                             <button
@@ -298,7 +296,7 @@ export default function ClientProjects() {
                                                 onClick={() => handleSimulateLockPayment(project.id)}
                                                 disabled={lockingId === project.id}
                                             >
-                                                Simulate Lock (DB)
+                                                Fallback Demo Lock
                                             </button>
                                         </>
                                     )}
@@ -308,7 +306,7 @@ export default function ClientProjects() {
                                             to={`/client/projects/${project.id}/review`}
                                             className="btn-primary"
                                         >
-                                            👀 Review Submission
+                                            Review Submission
                                         </Link>
                                     )}
 
@@ -316,7 +314,7 @@ export default function ClientProjects() {
                                         to={`/projects/${project.id}/chat`}
                                         className="btn-outline"
                                     >
-                                        💬 Chat
+                                        Chat
                                     </Link>
 
                                     {project.payment_status === 'locked' && (
@@ -324,11 +322,10 @@ export default function ClientProjects() {
                                             to={`/disputes?project=${project.id}`}
                                             className="btn-danger"
                                         >
-                                            ⚖️ Raise Dispute
+                                            Raise Dispute
                                         </Link>
                                     )}
                                 </div>
-
                             </div>
                         ))}
                     </div>

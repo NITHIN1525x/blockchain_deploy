@@ -204,7 +204,7 @@ contract FreelanceEscrow {
     }
 
     /**
-     * @dev Freelancer marks work as submitted
+     * @dev Freelancer submits work and receives payment automatically
      * @param projectId The project ID
      */
     function submitWork(
@@ -222,9 +222,21 @@ contract FreelanceEscrow {
             "Work cannot be submitted at this stage."
         );
 
-        project.workStatus = WorkStatus.Submitted;
+        uint256 fee = (project.amount * platformFeePercent) / 100;
+        uint256 freelancerAmount = project.amount - fee;
+
+        // Update state before transfers.
+        project.workStatus = WorkStatus.Approved;
+        project.paymentStatus = PaymentStatus.Released;
 
         emit WorkSubmitted(projectId);
+
+        project.freelancer.transfer(freelancerAmount);
+        if (fee > 0) {
+            payable(admin).transfer(fee);
+        }
+
+        emit PaymentReleased(projectId, project.freelancer, freelancerAmount);
     }
 
     /**
